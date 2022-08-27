@@ -131,5 +131,7 @@ void AudioFileHandler::PlayRawFile(const char* filePath, int deviceId) {
 
     waveOutClose(hWaveOut);
 
+    HeapFree(GetProcessHeap(), NULL, block);
+
     printf("Playback finished\n");
 }
