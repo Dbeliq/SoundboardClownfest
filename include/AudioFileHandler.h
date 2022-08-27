@@ -1,8 +1,6 @@
 #pragma once
-#include <iostream>
 #include <stdio.h>
 #include <string>
-#include <thread>
 
 #include <Windows.h>
 #include <mmsystem.h>
@@ -16,7 +14,7 @@
 class AudioFileHandler {
 
 public:
-    AudioFileHandler();
+   // AudioFileHandler();
     void GetWaveDevicesInfo();
     void PlayRawFile(const char* filePath, int deviceId);
 private: 
