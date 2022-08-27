@@ -7,7 +7,7 @@
 
 
 /* A class to handle audio files. */
-/* Currently it loads a .raw file block into memory and plays it on a separate thread */
+/* Currently it loads a .raw file block into memory and plays it*/
 /* Because of this the files shouldn't be large. Might implement a block switch to make larger files actually usable*/
 /* Might add automated conversion to .raw file */
 

@@ -2,7 +2,7 @@
 
 void AudioFileHandler::GetWaveDevicesInfo() {
     UINT numOfDevs = waveOutGetNumDevs();
-    std::cout << "Number of devices: " << numOfDevs << std::endl; 
+    printf("Number of devices: %x", numOfDevs);
 
     for(int devId = 0; devId < numOfDevs; devId++) {
         WAVEOUTCAPS caps;
