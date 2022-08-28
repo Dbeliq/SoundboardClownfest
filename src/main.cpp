@@ -16,6 +16,8 @@
 
 static std::list<char> pressedKeys;
 static AudioFileHandler audioFileHandler;    
+static LPSTR block;
+static DWORD blockSize;
 
 /* Helper function for finding if a list contains an element */
 /* Maybe add it to a utils class? */
@@ -40,11 +42,19 @@ LRESULT CALLBACK KBDHOOK(int nCode, WPARAM wParam, LPARAM lParam) {
     switch(wParam) {
         case WM_KEYDOWN: {
             char c = MapVirtualKey(s->vkCode, MAPVK_VK_TO_CHAR);
+            
             if(!contains(pressedKeys, c)) {
-                std::cout << c;
                 pressedKeys.push_back(c);
                 if(s->vkCode == 0x41) {
                     std::thread th(&AudioFileHandler::PlayRawFile, audioFileHandler, "E:\\Random\\Projects\\C++\\Homofold\\E\\test.raw", 1);
+                    th.detach();
+                }
+                if(c == 'S') {
+                    std::thread th(&AudioFileHandler::PlayRawFile, audioFileHandler, "E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", 1);
+                    th.detach();
+                }
+                if(c == 'D') {
+                    std::thread th(&AudioFileHandler::PlayBlock, audioFileHandler, block, blockSize, 1);
                     th.detach();
                 }
             }      
@@ -63,6 +73,12 @@ LRESULT CALLBACK KBDHOOK(int nCode, WPARAM wParam, LPARAM lParam) {
 int main() {
     
     printf("Main started\n");
+
+    audioFileHandler.GetWaveDevicesInfo();
+
+   
+    block = audioFileHandler.LoadRawAudioBlock("E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", &blockSize);
+
 
     HHOOK kbd = SetWindowsHookEx(WH_KEYBOARD_LL, &KBDHOOK, 0, 0);
 

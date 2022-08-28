@@ -2,13 +2,12 @@
 
 void AudioFileHandler::GetWaveDevicesInfo() {
     UINT numOfDevs = waveOutGetNumDevs();
-    printf("Number of devices: %x", numOfDevs);
+    printf("Number of devices: %u\n", numOfDevs);
 
     for(int devId = 0; devId < numOfDevs; devId++) {
         WAVEOUTCAPS caps;
         MMRESULT result = waveOutGetDevCaps(devId, &caps, sizeof(WAVEOUTCAPS));
-        wprintf(L"Name=%s\n", caps.szPname);
-        printf("Manufacturer=%x, Product=%x, Version=%x\n\n", caps.wMid, caps.wPid, caps.vDriverVersion);
+        wprintf(L"Device Id: %u, Name: %S\n", devId, caps.szPname);
     }
 }
 
@@ -132,6 +131,55 @@ void AudioFileHandler::PlayRawFile(const char* filePath, int deviceId) {
     waveOutClose(hWaveOut);
 
     HeapFree(GetProcessHeap(), NULL, block);
+
+    printf("Playback finished\n");
+}
+
+void AudioFileHandler::PlayBlock(LPSTR block, DWORD blockSize, int deviceId) {
+
+    /* Initializing stuff*/
+
+    HWAVEOUT hWaveOut;
+    WAVEFORMATEX wfx;
+    MMRESULT result;
+
+    /* The Wave Format. Would be a good idea to make it into a variable which is stored in the object */
+    /* or to pass it on as a variable to the function */
+
+    wfx.nSamplesPerSec = 48000;
+    wfx.wBitsPerSample = 24;
+    wfx.nChannels = 2;
+    
+    wfx.cbSize = 0;
+    wfx.wFormatTag = WAVE_FORMAT_PCM;
+    wfx.nBlockAlign = (wfx.wBitsPerSample >> 3) * wfx.nChannels;
+    wfx.nAvgBytesPerSec = wfx.nBlockAlign * wfx.nSamplesPerSec;
+
+    /* Opening the device */
+    /* WAVE_MAPPER is the default device */
+
+    if(waveOutOpen(&hWaveOut, deviceId, &wfx, 0, 0, CALLBACK_NULL) != MMSYSERR_NOERROR) {
+        if(deviceId == WAVE_MAPPER) {
+            printf("Default device could not be opened\n");
+        }
+        else {
+            printf("Device %u could not be opened\n", deviceId);
+        }
+    }
+    else {
+        if(deviceId == WAVE_MAPPER) {
+            printf("Default device was opened successfully!\n");
+        }
+        else {
+            printf("Device %u was opened successfully!\n", deviceId);
+        }
+    }
+
+    /* Writing the audio block to the device and closing the device after it finishes */
+
+    WriteRawAudioBlock(hWaveOut, block, blockSize);
+
+    waveOutClose(hWaveOut);
 
     printf("Playback finished\n");
 }

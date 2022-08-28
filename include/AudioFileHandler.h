@@ -17,7 +17,8 @@ public:
    // AudioFileHandler();
     void GetWaveDevicesInfo();
     void PlayRawFile(const char* filePath, int deviceId);
-private: 
+    void PlayBlock(LPSTR block, DWORD blockSize, int deviceId);
     LPSTR LoadRawAudioBlock(const char* filePath, DWORD* blockSize);
+private: 
     void WriteRawAudioBlock(HWAVEOUT hWaveOut, LPSTR block, DWORD size);
 };
