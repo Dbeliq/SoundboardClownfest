@@ -1,5 +1,31 @@
 #include "AudioFileHandler.h"
 
+AudioFileHandler::AudioFileHandler() {
+    defaultWfx.nSamplesPerSec = 48000;
+    defaultWfx.wBitsPerSample = 16;
+    defaultWfx.nChannels = 2;
+    
+    defaultWfx.cbSize = 0;
+    defaultWfx.wFormatTag = WAVE_FORMAT_PCM;
+    defaultWfx.nBlockAlign = (defaultWfx.wBitsPerSample >> 3) * defaultWfx.nChannels;
+    defaultWfx.nAvgBytesPerSec = defaultWfx.nBlockAlign * defaultWfx.nSamplesPerSec;
+}
+
+AudioFileHandler::AudioFileHandler(WAVEFORMATEX wfx) {
+    // Add validation if not lazy :)
+    defaultWfx = wfx;
+}
+
+WAVEFORMATEX AudioFileHandler::GetDefaultWfx() {
+    return defaultWfx;
+}
+void AudioFileHandler::SetDefaultWfx(WAVEFORMATEX wfx) {
+    // Do some validation if not lazy :3
+    defaultWfx = wfx;
+}
+
+
+
 void AudioFileHandler::GetWaveDevicesInfo() {
     UINT numOfDevs = waveOutGetNumDevs();
     printf("Number of devices: %u\n", numOfDevs);
@@ -46,6 +72,72 @@ LPSTR AudioFileHandler::LoadRawAudioBlock(const char* filePath, DWORD* blockSize
     *blockSize = size;
 
     return (LPSTR)block;
+}
+
+void AudioFileHandler::LoadWavFile(const char* filePath, WavHeader& wavHeader) {
+    FILE* file;
+
+    if ((file = fopen(filePath, "rb")) == NULL) {
+        printf("Couldn't open file");
+        return;
+    }
+
+    fread(wavHeader.riff_header, 4, 1, file);
+    if(wavHeader.riff_header[0] != 'R' || wavHeader.riff_header[1] != 'I' || wavHeader.riff_header[2] != 'F' || wavHeader.riff_header[3] != 'F') {
+        printf("riff_header value should be \"RIFF\"");
+        return;
+    }
+    
+    fread(&wavHeader.wav_size, 4, 1, file);
+
+    fread(wavHeader.wav_header, 1, 4, file);
+    if(wavHeader.wav_header[0] != 'W' || wavHeader.wav_header[1] != 'A' || wavHeader.wav_header[2] != 'V' || wavHeader.wav_header[3] != 'E') {
+        printf("wav_header value should be \"WAVE\"");
+        return;
+    }
+    
+    fread(wavHeader.fmt_header, 1, 4, file);
+    if(wavHeader.fmt_header[0] != 'f' || wavHeader.fmt_header[1] != 'm' || wavHeader.fmt_header[2] != 't' || wavHeader.fmt_header[3] != ' ') {
+        printf("fmt_header value should be \"fmt \"");
+        return;
+    }
+
+    fread(&wavHeader.fmt_chunk_size, 4, 1, file);
+    fread(&wavHeader.audio_format, 2, 1, file);
+    printf("AudioFormat: %u\n", wavHeader.audio_format);
+    fread(&wavHeader.num_channels, 2, 1, file);
+    printf("NumChannel: %u\n", wavHeader.num_channels);
+    fread(&wavHeader.sample_rate, 4, 1, file);
+    printf("SampleRate: %u\n", wavHeader.sample_rate);
+    fread(&wavHeader.byte_rate, 4, 1, file);
+    printf("ByteRate: %u\n", wavHeader.byte_rate);
+    fread(&wavHeader.block_align, 2, 1, file);
+    printf("BlockAlign: %u\n", wavHeader.block_align);
+    fread(&wavHeader.bits_per_sample, 2, 1,file);
+    printf("BitsPerSample: %u\n", wavHeader.bits_per_sample);
+
+
+    while(1) { 
+        fread(wavHeader.data_header, 1, 4, file);
+        printf("%c%c%c%c\n", wavHeader.data_header[0], wavHeader.data_header[1], wavHeader.data_header[2], wavHeader.data_header[3]);
+        fread(&wavHeader.data_bytes, 4, 1, file);
+        printf("%d\n", wavHeader.data_bytes);
+        if(wavHeader.data_header[0] == 'd' && wavHeader.data_header[1] == 'a' && wavHeader.data_header[2] == 't' && wavHeader.data_header[3] == 'a') {
+            break;
+        }
+        fseek(file, wavHeader.data_bytes, SEEK_CUR);
+    }
+
+    if((wavHeader.data = HeapAlloc(GetProcessHeap(), 0, wavHeader.data_bytes)) == NULL) {
+        printf("Could not allocate memory");
+        return;
+    }
+
+    if(fread(wavHeader.data, 1, wavHeader.data_bytes, file) != wavHeader.data_bytes) {
+        printf("Failed to read data bytes");
+        return;
+    }
+
 }
 
 void AudioFileHandler::WriteRawAudioBlock(HWAVEOUT hWaveOut, LPSTR block, DWORD size) {
@@ -130,30 +222,17 @@ void AudioFileHandler::PlayRawFile(const char* filePath, int deviceId) {
 
     waveOutClose(hWaveOut);
 
-    HeapFree(GetProcessHeap(), NULL, block);
+    HeapFree(GetProcessHeap(), 0, block);
 
     printf("Playback finished\n");
 }
 
-void AudioFileHandler::PlayBlock(LPSTR block, DWORD blockSize, int deviceId) {
+void AudioFileHandler::PlayBlock(LPSTR block, DWORD blockSize, WAVEFORMATEX wfx, int deviceId) {
 
     /* Initializing stuff*/
 
     HWAVEOUT hWaveOut;
-    WAVEFORMATEX wfx;
     MMRESULT result;
-
-    /* The Wave Format. Would be a good idea to make it into a variable which is stored in the object */
-    /* or to pass it on as a variable to the function */
-
-    wfx.nSamplesPerSec = 48000;
-    wfx.wBitsPerSample = 24;
-    wfx.nChannels = 2;
-    
-    wfx.cbSize = 0;
-    wfx.wFormatTag = WAVE_FORMAT_PCM;
-    wfx.nBlockAlign = (wfx.wBitsPerSample >> 3) * wfx.nChannels;
-    wfx.nAvgBytesPerSec = wfx.nBlockAlign * wfx.nSamplesPerSec;
 
     /* Opening the device */
     /* WAVE_MAPPER is the default device */

@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include <mmsystem.h>
 
+#include "WavHeader.h"
 
 /* A class to handle audio files. */
 /* Currently it loads a .raw file block into memory and plays it*/
@@ -14,11 +15,20 @@
 class AudioFileHandler {
 
 public:
-   // AudioFileHandler();
+    AudioFileHandler();
+    AudioFileHandler(WAVEFORMATEX);
+    
+    WAVEFORMATEX GetDefaultWfx();
     void GetWaveDevicesInfo();
+
+    void SetDefaultWfx(WAVEFORMATEX wfx);
+    
     void PlayRawFile(const char* filePath, int deviceId);
-    void PlayBlock(LPSTR block, DWORD blockSize, int deviceId);
+    void PlayBlock(LPSTR block, DWORD blockSize, WAVEFORMATEX wfx, int deviceId);
+    
     LPSTR LoadRawAudioBlock(const char* filePath, DWORD* blockSize);
+    void LoadWavFile(const char* filePath, WavHeader& wavHeader);
 private: 
     void WriteRawAudioBlock(HWAVEOUT hWaveOut, LPSTR block, DWORD size);
+    WAVEFORMATEX defaultWfx;
 };
