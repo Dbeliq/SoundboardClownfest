@@ -20,7 +20,7 @@ bool ListContains(std::list<T> & listOfElements, const T & element)
     return it != listOfElements.end();
 };
 
-/* Helper function to transform WavHeader to WFX so i can  */
+/* Helper function to transform WavHeader to WFX  */
 
 WAVEFORMATEX WavHeaderToWfx(WavHeader wavHeader) {
     WAVEFORMATEX wfx;

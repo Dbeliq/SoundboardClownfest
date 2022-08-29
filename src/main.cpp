@@ -32,11 +32,11 @@ LRESULT CALLBACK KBDHOOK(int nCode, WPARAM wParam, LPARAM lParam) {
             if(!ListContains(pressedKeys, c)) {
                 pressedKeys.push_back(c);
                 if(s->vkCode == 0x41) {
-                    std::thread th(&AudioFileHandler::PlayRawFile, audioFileHandler, "E:\\Random\\Projects\\C++\\Homofold\\E\\test.raw", 1);
+                    std::thread th(&AudioFileHandler::PlayRawFile, audioFileHandler, "E:\\Random\\Projects\\C++\\Homofold\\E\\test.raw", audioFileHandler.GetDefaultWfx(), 1);
                     th.detach();
                 }
                 if(c == 'S') {
-                    std::thread th(&AudioFileHandler::PlayRawFile, audioFileHandler, "E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", 1);
+                    std::thread th(&AudioFileHandler::PlayRawFile, audioFileHandler, "E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", audioFileHandler.GetDefaultWfx(), 1);
                     th.detach();
                 }
                 if(c == 'D') {
@@ -72,6 +72,7 @@ int main() {
     audioFileHandler.PlayBlock((LPSTR)wavHeader.data, wavHeader.data_bytes, wfx, 1);
 
 
+    audioFileHandler.PlayRawFile("E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", audioFileHandler.GetDefaultWfx(), 1);
 
 
 
@@ -88,6 +89,6 @@ int main() {
     // }
 
     // UnhookWindowsHookEx(kbd);
-
+    system("pause");
     return 0;
 }
