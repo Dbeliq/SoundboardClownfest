@@ -62,17 +62,9 @@ int main() {
 
     //audioFileHandler.GetWaveDevicesInfo();
 
-    WavHeader wavHeader;
+    audioFileHandler.PlayWavFile("gawd.wav", 1);
 
-    audioFileHandler.LoadWavFile("gawd.wav", wavHeader);
-
-    WAVEFORMATEX wfx = WavHeaderToWfx(wavHeader);
-    
-
-    audioFileHandler.PlayBlock((LPSTR)wavHeader.data, wavHeader.data_bytes, wfx, 1);
-
-
-    audioFileHandler.PlayRawFile("E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", audioFileHandler.GetDefaultWfx(), 1);
+    //audioFileHandler.PlayRawFile("E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", audioFileHandler.GetDefaultWfx(), 1);
 
 
 

@@ -6,7 +6,7 @@
 #include <mmsystem.h>
 
 #include "WavHeader.h"
-
+#include "Utilities.h"
 /* A class to handle audio files. */
 /* Currently it loads a .raw file block or a .wav file into memory and plays it*/
 /* Because of this the files shouldn't be large. Might implement a block switch to make larger files actually usable*/
@@ -35,6 +35,7 @@ public:
 
     void PlayBlock(LPSTR block, DWORD blockSize, WAVEFORMATEX wfx, int deviceId);
     void PlayRawFile(const char* filePath, WAVEFORMATEX wfx, int deviceId);
+    void PlayWavFile(const char* filePath, int deviceId);
 private: 
     void WriteRawAudioBlock(HWAVEOUT hWaveOut, LPSTR block, DWORD size);
     WAVEFORMATEX defaultWfx; 

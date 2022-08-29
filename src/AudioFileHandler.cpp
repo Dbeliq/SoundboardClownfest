@@ -226,3 +226,14 @@ void AudioFileHandler::PlayRawFile(const char* filePath, WAVEFORMATEX wfx, int d
 
     HeapFree(GetProcessHeap(), 0, block);
 }
+
+void AudioFileHandler::PlayWavFile(const char* filePath, int deviceId) {
+    WavHeader wavHeader;
+
+    LoadWavFile(filePath, wavHeader);
+
+    WAVEFORMATEX wfx = WavHeaderToWfx(wavHeader);
+    
+
+    PlayBlock((LPSTR)wavHeader.data, wavHeader.data_bytes, wfx, deviceId);
+}
