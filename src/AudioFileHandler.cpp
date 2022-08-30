@@ -204,7 +204,7 @@ void AudioFileHandler::PlayBlock(LPSTR block, DWORD blockSize, WAVEFORMATEX wfx,
 
 void AudioFileHandler::PlayRawFile(const char* filePath, WAVEFORMATEX wfx, int deviceId) {
 
-    /* Initializing stuff*/
+    /* Initializing stuff */
 
     HWAVEOUT hWaveOut;
     LPSTR block; 
@@ -228,12 +228,22 @@ void AudioFileHandler::PlayRawFile(const char* filePath, WAVEFORMATEX wfx, int d
 }
 
 void AudioFileHandler::PlayWavFile(const char* filePath, int deviceId) {
+
+    /* Initializing stuff */
+
     WavHeader wavHeader;
+
+    /* Loading the wav file into memory and filling the wave format */
 
     LoadWavFile(filePath, wavHeader);
 
     WAVEFORMATEX wfx = WavHeaderToWfx(wavHeader);
     
+    /* Playing the block */
 
     PlayBlock((LPSTR)wavHeader.data, wavHeader.data_bytes, wfx, deviceId);
+
+    /* Freeing the block from memory */
+
+    HeapFree(GetProcessHeap(), 0, wavHeader.data);
 }
