@@ -106,24 +106,20 @@ void AudioFileHandler::LoadWavFile(const char* filePath, WavHeader& wavHeader) {
 
     fread(&wavHeader.fmt_chunk_size, 4, 1, file);
     fread(&wavHeader.audio_format, 2, 1, file);
-    printf("AudioFormat: %u\n", wavHeader.audio_format);
-    fread(&wavHeader.num_channels, 2, 1, file);
-    printf("NumChannel: %u\n", wavHeader.num_channels);
-    fread(&wavHeader.sample_rate, 4, 1, file);
-    printf("SampleRate: %u\n", wavHeader.sample_rate);
-    fread(&wavHeader.byte_rate, 4, 1, file);
-    printf("ByteRate: %u\n", wavHeader.byte_rate);
-    fread(&wavHeader.block_align, 2, 1, file);
-    printf("BlockAlign: %u\n", wavHeader.block_align);
-    fread(&wavHeader.bits_per_sample, 2, 1,file);
-    printf("BitsPerSample: %u\n", wavHeader.bits_per_sample);
 
+    fread(&wavHeader.num_channels, 2, 1, file);
+
+    fread(&wavHeader.sample_rate, 4, 1, file);
+
+    fread(&wavHeader.byte_rate, 4, 1, file);
+
+    fread(&wavHeader.block_align, 2, 1, file);
+
+    fread(&wavHeader.bits_per_sample, 2, 1,file);
 
     while(1) { 
         fread(wavHeader.data_header, 1, 4, file);
-        printf("%c%c%c%c\n", wavHeader.data_header[0], wavHeader.data_header[1], wavHeader.data_header[2], wavHeader.data_header[3]);
         fread(&wavHeader.data_bytes, 4, 1, file);
-        printf("%d\n", wavHeader.data_bytes);
         if(wavHeader.data_header[0] == 'd' && wavHeader.data_header[1] == 'a' && wavHeader.data_header[2] == 't' && wavHeader.data_header[3] == 'a') {
             break;
         }
