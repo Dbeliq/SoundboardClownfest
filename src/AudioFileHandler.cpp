@@ -78,49 +78,53 @@ LPSTR AudioFileHandler::LoadRawAudioBlock(const char* filePath, DWORD* blockSize
 // TODO: Implement a way for errors to actually work
 void AudioFileHandler::LoadWavFile(const char* filePath, WavHeader& wavHeader) {
     FILE* file;
+    char tempDataHolder[4];
+    uint32_t wavSize;
+    uint32_t fmtChunkSize;
 
     if ((file = fopen(filePath, "rb")) == NULL) {
         printf("Couldn't open file");
         return;
     }
 
-    fread(wavHeader.riff_header, 4, 1, file);
-    if(wavHeader.riff_header[0] != 'R' || wavHeader.riff_header[1] != 'I' || wavHeader.riff_header[2] != 'F' || wavHeader.riff_header[3] != 'F') {
+    fread(tempDataHolder, 4, 1, file);
+    if(tempDataHolder[0] != 'R' || tempDataHolder[1] != 'I' || tempDataHolder[2] != 'F' || tempDataHolder[3] != 'F') {
         printf("riff_header value should be \"RIFF\"");
         return;
     }
     
-    fread(&wavHeader.wav_size, 4, 1, file);
+    fread(&wavSize, 4, 1, file);
 
-    fread(wavHeader.wav_header, 1, 4, file);
-    if(wavHeader.wav_header[0] != 'W' || wavHeader.wav_header[1] != 'A' || wavHeader.wav_header[2] != 'V' || wavHeader.wav_header[3] != 'E') {
+    fread(tempDataHolder, 1, 4, file);
+    if(tempDataHolder[0] != 'W' || tempDataHolder[1] != 'A' || tempDataHolder[2] != 'V' || tempDataHolder[3] != 'E') {
         printf("wav_header value should be \"WAVE\"");
         return;
     }
     
-    fread(wavHeader.fmt_header, 1, 4, file);
-    if(wavHeader.fmt_header[0] != 'f' || wavHeader.fmt_header[1] != 'm' || wavHeader.fmt_header[2] != 't' || wavHeader.fmt_header[3] != ' ') {
+    fread(tempDataHolder, 1, 4, file);
+    if(tempDataHolder[0] != 'f' || tempDataHolder[1] != 'm' || tempDataHolder[2] != 't' || tempDataHolder[3] != ' ') {
         printf("fmt_header value should be \"fmt \"");
         return;
     }
 
-    fread(&wavHeader.fmt_chunk_size, 4, 1, file);
-    fread(&wavHeader.audio_format, 2, 1, file);
+    fread(&fmtChunkSize, 4, 1, file);
+    
+    fread(&wavHeader.wfx.wFormatTag, 2, 1, file);
 
-    fread(&wavHeader.num_channels, 2, 1, file);
+    fread(&wavHeader.wfx.nChannels, 2, 1, file);
 
-    fread(&wavHeader.sample_rate, 4, 1, file);
+    fread(&wavHeader.wfx.nSamplesPerSec, 4, 1, file);
 
-    fread(&wavHeader.byte_rate, 4, 1, file);
+    fread(&wavHeader.wfx.nAvgBytesPerSec, 4, 1, file);
 
-    fread(&wavHeader.block_align, 2, 1, file);
+    fread(&wavHeader.wfx.nBlockAlign, 2, 1, file);
 
-    fread(&wavHeader.bits_per_sample, 2, 1,file);
+    fread(&wavHeader.wfx.wBitsPerSample, 2, 1,file);
 
     while(1) { 
-        fread(wavHeader.data_header, 1, 4, file);
+        fread(tempDataHolder, 1, 4, file);
         fread(&wavHeader.data_bytes, 4, 1, file);
-        if(wavHeader.data_header[0] == 'd' && wavHeader.data_header[1] == 'a' && wavHeader.data_header[2] == 't' && wavHeader.data_header[3] == 'a') {
+        if(tempDataHolder[0] == 'd' && tempDataHolder[1] == 'a' && tempDataHolder[2] == 't' && tempDataHolder[3] == 'a') {
             break;
         }
         fseek(file, wavHeader.data_bytes, SEEK_CUR);
@@ -233,11 +237,11 @@ void AudioFileHandler::PlayWavFile(const char* filePath, int deviceId) {
 
     LoadWavFile(filePath, wavHeader);
 
-    WAVEFORMATEX wfx = WavHeaderToWfx(wavHeader);
+    //WAVEFORMATEX wfx = WavHeaderToWfx(wavHeader);
     
     /* Playing the block */
 
-    PlayBlock((LPSTR)wavHeader.data, wavHeader.data_bytes, wfx, deviceId);
+    PlayBlock((LPSTR)wavHeader.data, wavHeader.data_bytes, wavHeader.wfx, deviceId);
 
     /* Freeing the block from memory */
 

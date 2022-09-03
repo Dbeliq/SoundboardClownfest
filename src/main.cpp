@@ -5,18 +5,15 @@
 #include <string>
 #include <thread>
 #include <list>
-
+#include <map>
 
 #include "Utilities.h"
 #include "AudioFileHandler.h"
 #include "WavHeader.h"
 
 static std::list<char> pressedKeys;
+static std::map<char, WavHeader> keyValueMap;
 static AudioFileHandler audioFileHandler;    
-static LPSTR block;
-static DWORD blockSize;
-
-
 
 /* The keyboard hook. It's low level so we can't get the last key state */
 /* So we just need to keep track of what keys were pressed and check them before we handle the press */
@@ -31,16 +28,10 @@ LRESULT CALLBACK KBDHOOK(int nCode, WPARAM wParam, LPARAM lParam) {
             
             if(!ListContains(pressedKeys, c)) {
                 pressedKeys.push_back(c);
-                if(s->vkCode == 0x41) {
-                    std::thread th(&AudioFileHandler::PlayRawFile, audioFileHandler, "E:\\Random\\Projects\\C++\\Homofold\\E\\test.raw", audioFileHandler.GetDefaultWfx(), 1);
-                    th.detach();
-                }
-                if(c == 'S') {
-                    std::thread th(&AudioFileHandler::PlayRawFile, audioFileHandler, "E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", audioFileHandler.GetDefaultWfx(), 1);
-                    th.detach();
-                }
-                if(c == 'D') {
-                    std::thread th(&AudioFileHandler::PlayBlock, audioFileHandler, block, blockSize, audioFileHandler.GetDefaultWfx(), 1);
+                
+                std::map<char, WavHeader>::iterator it = keyValueMap.find(c);
+                if(it != keyValueMap.end()) {
+                    std::thread th(&AudioFileHandler::PlayBlock, audioFileHandler, (LPSTR)it->second.data, it->second.data_bytes, it->second.wfx, 1);
                     th.detach();
                 }
             }      
@@ -62,25 +53,25 @@ int main() {
 
     //audioFileHandler.GetWaveDevicesInfo();
 
-    audioFileHandler.PlayWavFile("gawd.wav", 1);
+    // audioFileHandler.PlayWavFile("gawd.wav", 1);
 
-    //audioFileHandler.PlayRawFile("E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", audioFileHandler.GetDefaultWfx(), 1);
+    // audioFileHandler.PlayRawFile("E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", audioFileHandler.GetDefaultWfx(), 1);
 
+    WavHeader wavHeader;
 
+    audioFileHandler.LoadWavFile("discord.wav", wavHeader);
 
+    keyValueMap.insert(std::pair<char, WavHeader>('Q', wavHeader));
 
-    //block = audioFileHandler.LoadRawAudioBlock("E:\\Random\\Projects\\C++\\Homofold\\E\\omg.raw", &blockSize);
+    HHOOK kbd = SetWindowsHookEx(WH_KEYBOARD_LL, &KBDHOOK, 0, 0);
 
+    MSG message;
+    while(GetMessage(&message, NULL, 0, 0) > 0) {
+        TranslateMessage(&message);
+        DispatchMessage(&message);
+    }
 
-    // HHOOK kbd = SetWindowsHookEx(WH_KEYBOARD_LL, &KBDHOOK, 0, 0);
-
-    // MSG message;
-    // while(GetMessage(&message, NULL, 0, 0) > 0) {
-    //     TranslateMessage(&message);
-    //     DispatchMessage(&message);
-    // }
-
-    // UnhookWindowsHookEx(kbd);
+    UnhookWindowsHookEx(kbd);
     system("pause");
     return 0;
 }

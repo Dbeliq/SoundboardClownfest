@@ -21,19 +21,3 @@ inline bool ListContains(std::list<T> & listOfElements, const T & element)
     // does not exists in list
     return it != listOfElements.end();
 };
-
-/* Helper function to transform WavHeader to WFX  */
-
-inline WAVEFORMATEX WavHeaderToWfx(WavHeader wavHeader) {
-    WAVEFORMATEX wfx;
-    wfx.nSamplesPerSec = wavHeader.sample_rate;
-    wfx.wBitsPerSample = wavHeader.bits_per_sample;
-    wfx.nChannels = wavHeader.num_channels;
-    
-    wfx.cbSize = 0;
-    wfx.wFormatTag = WAVE_FORMAT_PCM;
-    wfx.nBlockAlign = wavHeader.block_align;
-    wfx.nAvgBytesPerSec = wavHeader.byte_rate;
-
-    return wfx;
-}
